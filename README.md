@@ -1,8 +1,204 @@
-# Build a Fullstack App in Vanilla JS & Go Course
-This is a companion repository for the [Build a Fullstack App in Vanilla JS & Go](https://frontendmasters.com/courses/vanilla-js-go/) course on Frontend Masters.
-[![Frontend Masters](https://static.frontendmasters.com/assets/brand/logos/full.png)](https://frontendmasters.com/courses/vanilla-js-go/)
+# Nomado Real Estate Platform
 
-The code snippets below are referenced throughout the course so you can either code along with Max Firtman or copy/paste. In the assets folders, you will find a copy of the slides and the final project.
+A modern real estate platform built with Go backend and Vanilla JavaScript frontend, implementing a clean repository pattern.
+
+## Features
+
+- **Property Listings**: Browse and search through various real estate properties
+- **Property Details**: Detailed view of each property with images, descriptions, and agent information
+- **Agent Profiles**: View real estate agents and their information
+- **Property Types**: Filter properties by type (Villa, Apartment, House, etc.)
+- **Price Filtering**: Filter properties by price ranges
+- **Responsive Design**: Modern, mobile-friendly interface
+- **RESTful API**: Clean API endpoints for all operations
+
+## Tech Stack
+
+- **Backend**: Go (Golang)
+- **Database**: PostgreSQL
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Architecture**: Repository Pattern with clean separation of concerns
+
+## Project Structure
+
+```
+├── main.go                 # Application entry point
+├── db/                     # Database configuration and setup
+│   └── database.go
+├── models/                 # Data models
+│   ├── house.go
+│   ├── agent.go
+│   └── housetype.go
+├── repository/             # Repository layer (data access)
+│   ├── house_repository.go
+│   ├── agent_repository.go
+│   └── housetype_repository.go
+├── handlers/               # HTTP handlers (controllers)
+│   └── house_handlers.go
+├── logger/                 # Logging utilities
+│   └── logger.go
+├── public/                 # Frontend assets
+│   ├── index.html
+│   ├── app.css
+│   ├── app.js
+│   └── images/
+└── .env                   # Environment configuration
+```
+
+## API Endpoints
+
+### Properties
+- `GET /api/houses` - Get all properties
+- `GET /api/houses/top?limit=N` - Get top N properties by price
+- `GET /api/houses/{id}` - Get property by ID
+- `POST /api/houses` - Create new property
+- `PUT /api/houses/{id}` - Update property
+- `DELETE /api/houses/{id}` - Delete property
+
+### Agents
+- `GET /api/agents` - Get all agents
+
+### House Types
+- `GET /api/house-types` - Get all house types
+
+## Installation & Setup
+
+### Prerequisites
+- Go 1.19 or higher
+- PostgreSQL 12 or higher
+
+### Database Setup
+
+1. Install PostgreSQL on your system
+2. Run the database setup script:
+   ```bash
+   ./setup-db.sh
+   ```
+
+### Environment Configuration
+
+1. Copy and configure environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Update the `.env` file with your database credentials:
+   ```
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USER=postgres
+   DB_PASSWORD=your_password
+   DB_NAME=nomado
+   DB_SSLMODE=disable
+   ```
+
+### Running the Application
+
+1. Install Go dependencies:
+   ```bash
+   go mod tidy
+   ```
+
+2. Run the application:
+   ```bash
+   go run main.go
+   ```
+
+3. Open your browser and navigate to:
+   ```
+   http://localhost:8080
+   ```
+
+## Database Schema
+
+The application automatically creates the following tables:
+
+### house_types
+- `id` (Primary Key)
+- `name` (House type name)
+
+### agents
+- `id` (Primary Key)
+- `first_name`
+- `last_name`
+- `image_url` (nullable)
+
+### houses
+- `id` (Primary Key)
+- `name`
+- `description`
+- `house_type_id` (Foreign Key)
+- `price`
+- `tags` (comma-separated)
+- `image_url` (nullable)
+- `created_at`
+- `updated_at`
+- `agent_id` (Foreign Key)
+
+## Features in Detail
+
+### Repository Pattern
+The application implements a clean repository pattern:
+- **Models**: Define data structures
+- **Repository**: Handle database operations
+- **Handlers**: Process HTTP requests and responses
+- **Database**: Manage connections and schema
+
+### Frontend Features
+- Single Page Application (SPA) with vanilla JavaScript
+- Responsive grid layout for properties
+- Modal dialogs for property details
+- Real-time filtering and search
+- Modern CSS with animations and transitions
+
+### Backend Features
+- RESTful API design
+- Error handling and logging
+- CORS support
+- Database connection pooling
+- Automatic table creation and data seeding
+
+## Development
+
+### Adding New Features
+
+1. **New Model**: Add to `models/` directory
+2. **Repository**: Create corresponding repository in `repository/`
+3. **Handler**: Add HTTP handlers in `handlers/`
+4. **Routes**: Register routes in `main.go`
+
+### Running Tests
+```bash
+go test ./...
+```
+
+### Building for Production
+```bash
+go build -o nomado main.go
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Screenshots
+
+The application features:
+- Modern, responsive design
+- Property grid layout
+- Detailed property modals
+- Agent profiles
+- Filtering capabilities
+
+Access the application at `http://localhost:8080` to see it in action!
 
 ## A-Backend
 

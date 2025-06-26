@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nomado - Real Estate Platform</title>
+    <link rel="stylesheet" href="app.css">
+    <link rel="manifest" href="app.webmanifest">
+    <link rel="icon" href="images/icon.png">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-brand">
+                <img src="images/logo.svg" alt="Nomado" class="logo">
+                <h1>Nomado</h1>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link active" data-section="home">Home</a>
+                <a href="#" class="nav-link" data-section="properties">Properties</a>
+                <a href="#" class="nav-link" data-section="agents">Agents</a>
+                <a href="#" class="nav-link" data-section="about">About</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main">
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <div class="hero-content">
+                    <h2 class="hero-title">Find Your Dream Home</h2>
+                    <p class="hero-subtitle">Discover the perfect property with our premium real estate platform</p>
+                    <button class="cta-button" onclick="showSection('properties')">Browse Properties</button>
+                </div>
+                <div class="hero-image">
+                    <img src="images/logo.png" alt="Real Estate" class="hero-img">
+                </div>
+            </div>
+
+            <div class="featured-section">
+                <h3 class="section-title">Top Properties</h3>
+                <div class="loading" id="home-loading">Loading top properties...</div>
+                <div class="properties-grid" id="top-properties"></div>
+            </div>
+        </section>
+
+        <!-- Properties Section -->
+        <section id="properties" class="section">
+            <div class="section-header">
+                <h2 class="section-title">All Properties</h2>
+                <div class="filters">
+                    <select id="type-filter" class="filter-select">
+                        <option value="">All Types</option>
+                    </select>
+                    <select id="price-filter" class="filter-select">
+                        <option value="">All Prices</option>
+                        <option value="0-300000">Under $300,000</option>
+                        <option value="300000-600000">$300,000 - $600,000</option>
+                        <option value="600000-1000000">$600,000 - $1,000,000</option>
+                        <option value="1000000+">Over $1,000,000</option>
+                    </select>
+                </div>
+            </div>
+            <div class="loading" id="properties-loading">Loading properties...</div>
+            <div class="properties-grid" id="all-properties"></div>
+        </section>
+
+        <!-- Agents Section -->
+        <section id="agents" class="section">
+            <div class="section-header">
+                <h2 class="section-title">Our Agents</h2>
+            </div>
+            <div class="loading" id="agents-loading">Loading agents...</div>
+            <div class="agents-grid" id="agents-list"></div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="section">
+            <div class="about-content">
+                <h2 class="section-title">About Nomado</h2>
+                <p class="about-text">
+                    Nomado is a premium real estate platform that connects buyers with their dream properties. 
+                    We offer a curated selection of homes, apartments, villas, and commercial properties 
+                    with the help of our experienced real estate professionals.
+                </p>
+                <div class="about-stats">
+                    <div class="stat">
+                        <h3 class="stat-number">500+</h3>
+                        <p class="stat-label">Properties Listed</p>
+                    </div>
+                    <div class="stat">
+                        <h3 class="stat-number">100+</h3>
+                        <p class="stat-label">Happy Clients</p>
+                    </div>
+                    <div class="stat">
+                        <h3 class="stat-number">50+</h3>
+                        <p class="stat-label">Expert Agents</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Property Modal -->
+    <div id="property-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2025 Nomado Real Estate. All rights reserved.</p>
+        <p>Built with Go and Vanilla JavaScript</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
