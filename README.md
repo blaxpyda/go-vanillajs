@@ -1,31 +1,33 @@
-# Nomado Real Estate Platform
+# Nomado Real Estate API
 
-A modern real estate platform built with Go backend and Vanilla JavaScript frontend, implementing a clean repository pattern.
+A robust REST API backend for real estate management built with Go, implementing clean repository pattern architecture. Perfect for building web applications and mobile apps.
 
-## Features
+## 🚀 Features
 
-- **Property Listings**: Browse and search through various real estate properties
-- **Property Details**: Detailed view of each property with images, descriptions, and agent information
-- **Agent Profiles**: View real estate agents and their information
-- **Property Types**: Filter properties by type (Villa, Apartment, House, etc.)
-- **Price Filtering**: Filter properties by price ranges
-- **Responsive Design**: Modern, mobile-friendly interface
-- **RESTful API**: Clean API endpoints for all operations
+- **RESTful API**: Complete CRUD operations for properties, agents, and property types
+- **Clean Architecture**: Repository pattern with proper separation of concerns
+- **Database Integration**: PostgreSQL with automatic schema creation and seeding
+- **CORS Support**: Ready for frontend and mobile app consumption
+- **Structured Logging**: Comprehensive logging system
+- **Error Handling**: Consistent API responses with proper error codes
+- **Data Validation**: Input validation for all endpoints
+- **Sample Data**: Pre-seeded with realistic real estate data
 
-## Tech Stack
+## 🛠 Tech Stack
 
-- **Backend**: Go (Golang)
-- **Database**: PostgreSQL
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3
-- **Architecture**: Repository Pattern with clean separation of concerns
+- **Backend**: Go (Golang) 1.19+
+- **Database**: PostgreSQL 12+
+- **Architecture**: Repository Pattern
+- **HTTP Router**: Native Go HTTP package
+- **Logging**: Custom structured logging
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-├── main.go                 # Application entry point
+├── main.go                 # Application entry point & HTTP server
 ├── db/                     # Database configuration and setup
 │   └── database.go
-├── models/                 # Data models
+├── models/                 # Data models/entities
 │   ├── house.go
 │   ├── agent.go
 │   └── housetype.go
@@ -37,18 +39,15 @@ A modern real estate platform built with Go backend and Vanilla JavaScript front
 │   └── house_handlers.go
 ├── logger/                 # Logging utilities
 │   └── logger.go
-├── public/                 # Frontend assets
-│   ├── index.html
-│   ├── app.css
-│   ├── app.js
-│   └── images/
-└── .env                   # Environment configuration
+├── .env                   # Environment configuration
+├── .env.example           # Environment template
+└── API_DOCUMENTATION.md   # Complete API documentation
 ```
 
-## API Endpoints
+## 📡 API Endpoints
 
 ### Properties
-- `GET /api/houses` - Get all properties
+- `GET /api/houses` - Get all properties with agent and type details
 - `GET /api/houses/top?limit=N` - Get top N properties by price
 - `GET /api/houses/{id}` - Get property by ID
 - `POST /api/houses` - Create new property
@@ -56,12 +55,16 @@ A modern real estate platform built with Go backend and Vanilla JavaScript front
 - `DELETE /api/houses/{id}` - Delete property
 
 ### Agents
-- `GET /api/agents` - Get all agents
+- `GET /api/agents` - Get all real estate agents
 
-### House Types
-- `GET /api/house-types` - Get all house types
+### Property Types
+- `GET /api/house-types` - Get all property types
 
-## Installation & Setup
+### System
+- `GET /api/health` - Health check endpoint
+- `GET /api` - API information and available endpoints
+
+## 🔧 Installation & Setup
 
 ### Prerequisites
 - Go 1.19 or higher
@@ -77,13 +80,13 @@ A modern real estate platform built with Go backend and Vanilla JavaScript front
 
 ### Environment Configuration
 
-1. Copy and configure environment variables:
+1. Copy the environment template:
    ```bash
    cp .env.example .env
    ```
 
 2. Update the `.env` file with your database credentials:
-   ```
+   ```env
    DB_HOST=localhost
    DB_PORT=5432
    DB_USER=postgres
@@ -92,92 +95,168 @@ A modern real estate platform built with Go backend and Vanilla JavaScript front
    DB_SSLMODE=disable
    ```
 
-### Running the Application
+### Running the API
 
 1. Install Go dependencies:
    ```bash
    go mod tidy
    ```
 
-2. Run the application:
+2. Start the API server:
    ```bash
    go run main.go
    ```
 
-3. Open your browser and navigate to:
+3. The API will be available at:
    ```
    http://localhost:8080
    ```
 
-## Database Schema
+## 📊 Database Schema
 
-The application automatically creates the following tables:
+The API automatically creates and seeds the following tables:
 
-### house_types
+### `house_types`
 - `id` (Primary Key)
-- `name` (House type name)
+- `name` (Unique house type name)
 
-### agents
+### `agents` 
 - `id` (Primary Key)
 - `first_name`
-- `last_name`
+- `last_name` 
 - `image_url` (nullable)
 
-### houses
+### `houses`
 - `id` (Primary Key)
 - `name`
 - `description`
-- `house_type_id` (Foreign Key)
+- `house_type_id` (Foreign Key → house_types)
 - `price`
 - `tags` (comma-separated)
 - `image_url` (nullable)
 - `created_at`
 - `updated_at`
-- `agent_id` (Foreign Key)
+- `agent_id` (Foreign Key → agents)
 
-## Features in Detail
+## 🔍 API Response Format
 
-### Repository Pattern
-The application implements a clean repository pattern:
-- **Models**: Define data structures
-- **Repository**: Handle database operations
-- **Handlers**: Process HTTP requests and responses
-- **Database**: Manage connections and schema
+All API responses follow a consistent structure:
 
-### Frontend Features
-- Single Page Application (SPA) with vanilla JavaScript
-- Responsive grid layout for properties
-- Modal dialogs for property details
-- Real-time filtering and search
-- Modern CSS with animations and transitions
+### Success Response
+```json
+{
+  "success": true,
+  "data": {...},
+  "message": "Operation completed successfully"
+}
+```
 
-### Backend Features
-- RESTful API design
-- Error handling and logging
-- CORS support
-- Database connection pooling
-- Automatic table creation and data seeding
+### Error Response
+```json
+{
+  "success": false,
+  "error": "Error description"
+}
+```
 
-## Development
+## 📚 Usage Examples
 
-### Adding New Features
+### Get all properties
+```bash
+curl -X GET http://localhost:8080/api/houses
+```
 
-1. **New Model**: Add to `models/` directory
-2. **Repository**: Create corresponding repository in `repository/`
-3. **Handler**: Add HTTP handlers in `handlers/`
-4. **Routes**: Register routes in `main.go`
+### Get top 5 properties by price
+```bash
+curl -X GET "http://localhost:8080/api/houses/top?limit=5"
+```
+
+### Create a new property
+```bash
+curl -X POST http://localhost:8080/api/houses \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Modern Apartment",
+    "description": "Beautiful 2-bedroom apartment",
+    "house_type_id": 2,
+    "price": 450000,
+    "tags": ["modern", "apartment", "2-bedroom"],
+    "agent_id": 1
+  }'
+```
+
+### Get a specific property
+```bash
+curl -X GET http://localhost:8080/api/houses/1
+```
+
+## 🛡 CORS Support
+
+The API includes CORS headers for cross-origin requests:
+- `Access-Control-Allow-Origin: *`
+- `Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS`
+- `Access-Control-Allow-Headers: Content-Type, Authorization`
+
+## 🏗 Architecture Pattern
+
+The application follows the **Repository Pattern** for clean architecture:
+
+1. **Models**: Define data structures and business entities
+2. **Repository Layer**: Handle all database operations and data access
+3. **Handler Layer**: Process HTTP requests, validation, and responses
+4. **Database Layer**: Manage connections, schema, and seeding
+
+This pattern provides:
+- ✅ Separation of concerns
+- ✅ Testability
+- ✅ Maintainability
+- ✅ Scalability
+
+## 🚀 Development
+
+### Building for Production
+```bash
+go build -o nomado-api main.go
+```
 
 ### Running Tests
 ```bash
 go test ./...
 ```
 
-### Building for Production
-```bash
-go build -o nomado main.go
-```
+### Adding New Features
 
-## Contributing
+1. **New Model**: Add to `models/` directory
+2. **Repository**: Create corresponding repository in `repository/`
+3. **Handlers**: Add HTTP handlers in `handlers/`
+4. **Routes**: Register routes in `main.go`
+
+## 📱 Frontend Integration
+
+This API is designed to be consumed by:
+- **Web Applications**: React, Vue, Angular, or Vanilla JavaScript
+- **Mobile Apps**: React Native, Flutter, Swift, Kotlin
+- **Desktop Apps**: Electron, Tauri
+- **Other Services**: Microservices, serverless functions
+
+## 🔮 Future Enhancements
+
+- [ ] JWT Authentication & Authorization
+- [ ] Pagination support for large datasets
+- [ ] Advanced search and filtering
+- [ ] Image upload functionality
+- [ ] API rate limiting
+- [ ] Redis caching
+- [ ] Swagger/OpenAPI documentation
+- [ ] Comprehensive test suite
+- [ ] Docker containerization
+- [ ] CI/CD pipeline
+
+## 📖 Documentation
+
+For complete API documentation including all endpoints, request/response examples, and error codes, see [API_DOCUMENTATION.md](./API_DOCUMENTATION.md).
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -185,20 +264,15 @@ go build -o nomado main.go
 4. Add tests if applicable
 5. Submit a pull request
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License.
 
-## Screenshots
+---
 
-The application features:
-- Modern, responsive design
-- Property grid layout
-- Detailed property modals
-- Agent profiles
-- Filtering capabilities
+**Ready to build amazing real estate applications!** 🏠✨
 
-Access the application at `http://localhost:8080` to see it in action!
+The API provides everything you need to create modern web and mobile applications for real estate management. Start building your frontend today!
 
 ## A-Backend
 

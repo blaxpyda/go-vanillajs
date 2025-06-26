@@ -10,6 +10,28 @@ import (
 	"thugcorp.io/nomado/repository"
 )
 
+// Response structures for API responses
+type APIResponse struct {
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   string      `json:"error,omitempty"`
+	Message string      `json:"message,omitempty"`
+}
+
+type PaginatedResponse struct {
+	Success    bool        `json:"success"`
+	Data       interface{} `json:"data"`
+	Pagination Pagination  `json:"pagination"`
+	Error      string      `json:"error,omitempty"`
+}
+
+type Pagination struct {
+	Page       int `json:"page"`
+	Limit      int `json:"limit"`
+	Total      int `json:"total"`
+	TotalPages int `json:"total_pages"`
+}
+
 type HouseHandler struct {
 	houseRepo     *repository.HouseRepository
 	agentRepo     *repository.AgentRepository
@@ -32,13 +54,35 @@ func NewHouseHandler(houseRepo *repository.HouseRepository, agentRepo *repositor
 	}
 }
 
-func (h *HouseHandler) GetTopHouses(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
+// Helper methods for consistent API responses
+func (h *HouseHandler) sendSuccessResponse(w http.ResponseWriter, data interface{}, message string) {
+	response := APIResponse{
+		Success: true,
+		Data:    data,
+		Message: message,
+	}
+	h.sendJSONResponse(w, http.StatusOK, response)
+}
 
+func (h *HouseHandler) sendErrorResponse(w http.ResponseWriter, statusCode int, errorMsg string) {
+	response := APIResponse{
+		Success: false,
+		Error:   errorMsg,
+	}
+	h.sendJSONResponse(w, statusCode, response)
+}
+
+func (h *HouseHandler) sendJSONResponse(w http.ResponseWriter, statusCode int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		h.logger.Error("Failed to encode JSON response", err)
+	}
+}
+
+func (h *HouseHandler) GetTopHouses(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		h.sendErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
@@ -54,7 +98,7 @@ func (h *HouseHandler) GetTopHouses(w http.ResponseWriter, r *http.Request) {
 	houses, err := h.houseRepo.GetTopHouses(limit)
 	if err != nil {
 		h.logger.Error("Failed to get top houses", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		h.sendErrorResponse(w, http.StatusInternalServerError, "Failed to retrieve top houses")
 		return
 	}
 
@@ -76,27 +120,19 @@ func (h *HouseHandler) GetTopHouses(w http.ResponseWriter, r *http.Request) {
 		housesWithDetails = append(housesWithDetails, houseWithDetails)
 	}
 
-	if err := json.NewEncoder(w).Encode(housesWithDetails); err != nil {
-		h.logger.Error("Failed to encode response", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	h.sendSuccessResponse(w, housesWithDetails, "Top houses retrieved successfully")
 }
 
 func (h *HouseHandler) GetAllHouses(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		h.sendErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
 	houses, err := h.houseRepo.GetAllHouses()
 	if err != nil {
 		h.logger.Error("Failed to get all houses", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		h.sendErrorResponse(w, http.StatusInternalServerError, "Failed to retrieve houses")
 		return
 	}
 
@@ -118,20 +154,12 @@ func (h *HouseHandler) GetAllHouses(w http.ResponseWriter, r *http.Request) {
 		housesWithDetails = append(housesWithDetails, houseWithDetails)
 	}
 
-	if err := json.NewEncoder(w).Encode(housesWithDetails); err != nil {
-		h.logger.Error("Failed to encode response", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	h.sendSuccessResponse(w, housesWithDetails, "Houses retrieved successfully")
 }
 
 func (h *HouseHandler) GetHouseByID(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		h.sendErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
@@ -140,14 +168,14 @@ func (h *HouseHandler) GetHouseByID(w http.ResponseWriter, r *http.Request) {
 	idStr := path[len("/api/houses/"):]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid house ID", http.StatusBadRequest)
+		h.sendErrorResponse(w, http.StatusBadRequest, "Invalid house ID")
 		return
 	}
 
 	house, err := h.houseRepo.GetHouseByID(id)
 	if err != nil {
 		h.logger.Error("Failed to get house by ID", err)
-		http.Error(w, "House not found", http.StatusNotFound)
+		h.sendErrorResponse(w, http.StatusNotFound, "House not found")
 		return
 	}
 
@@ -163,48 +191,47 @@ func (h *HouseHandler) GetHouseByID(w http.ResponseWriter, r *http.Request) {
 		houseWithDetails.HouseType = houseType
 	}
 
-	if err := json.NewEncoder(w).Encode(houseWithDetails); err != nil {
-		h.logger.Error("Failed to encode response", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	h.sendSuccessResponse(w, houseWithDetails, "House retrieved successfully")
 }
 
 func (h *HouseHandler) CreateHouse(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		h.sendErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
 	var house models.House
 	if err := json.NewDecoder(r.Body).Decode(&house); err != nil {
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		h.sendErrorResponse(w, http.StatusBadRequest, "Invalid JSON body")
+		return
+	}
+
+	// Basic validation
+	if house.Name == "" {
+		h.sendErrorResponse(w, http.StatusBadRequest, "House name is required")
+		return
+	}
+	if house.Price <= 0 {
+		h.sendErrorResponse(w, http.StatusBadRequest, "House price must be greater than 0")
 		return
 	}
 
 	if err := h.houseRepo.CreateHouse(&house); err != nil {
 		h.logger.Error("Failed to create house", err)
-		http.Error(w, "Failed to create house", http.StatusInternalServerError)
+		h.sendErrorResponse(w, http.StatusInternalServerError, "Failed to create house")
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(house); err != nil {
-		h.logger.Error("Failed to encode response", err)
-	}
+	h.sendJSONResponse(w, http.StatusCreated, APIResponse{
+		Success: true,
+		Data:    house,
+		Message: "House created successfully",
+	})
 }
 
 func (h *HouseHandler) UpdateHouse(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-
 	if r.Method != http.MethodPut {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		h.sendErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
@@ -213,35 +240,39 @@ func (h *HouseHandler) UpdateHouse(w http.ResponseWriter, r *http.Request) {
 	idStr := path[len("/api/houses/"):]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid house ID", http.StatusBadRequest)
+		h.sendErrorResponse(w, http.StatusBadRequest, "Invalid house ID")
 		return
 	}
 
 	var house models.House
 	if err := json.NewDecoder(r.Body).Decode(&house); err != nil {
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		h.sendErrorResponse(w, http.StatusBadRequest, "Invalid JSON body")
+		return
+	}
+
+	// Basic validation
+	if house.Name == "" {
+		h.sendErrorResponse(w, http.StatusBadRequest, "House name is required")
+		return
+	}
+	if house.Price <= 0 {
+		h.sendErrorResponse(w, http.StatusBadRequest, "House price must be greater than 0")
 		return
 	}
 
 	house.ID = id
 	if err := h.houseRepo.UpdateHouse(&house); err != nil {
 		h.logger.Error("Failed to update house", err)
-		http.Error(w, "Failed to update house", http.StatusInternalServerError)
+		h.sendErrorResponse(w, http.StatusInternalServerError, "Failed to update house")
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(house); err != nil {
-		h.logger.Error("Failed to encode response", err)
-	}
+	h.sendSuccessResponse(w, house, "House updated successfully")
 }
 
 func (h *HouseHandler) DeleteHouse(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-
 	if r.Method != http.MethodDelete {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		h.sendErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
@@ -250,65 +281,52 @@ func (h *HouseHandler) DeleteHouse(w http.ResponseWriter, r *http.Request) {
 	idStr := path[len("/api/houses/"):]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid house ID", http.StatusBadRequest)
+		h.sendErrorResponse(w, http.StatusBadRequest, "Invalid house ID")
 		return
 	}
 
 	if err := h.houseRepo.DeleteHouse(id); err != nil {
 		h.logger.Error("Failed to delete house", err)
-		http.Error(w, "Failed to delete house", http.StatusInternalServerError)
+		h.sendErrorResponse(w, http.StatusInternalServerError, "Failed to delete house")
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	h.sendJSONResponse(w, http.StatusOK, APIResponse{
+		Success: true,
+		Message: "House deleted successfully",
+	})
 }
 
 func (h *HouseHandler) GetAgents(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		h.sendErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
 	agents, err := h.agentRepo.GetAllAgents()
 	if err != nil {
 		h.logger.Error("Failed to get agents", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		h.sendErrorResponse(w, http.StatusInternalServerError, "Failed to retrieve agents")
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(agents); err != nil {
-		h.logger.Error("Failed to encode response", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	h.sendSuccessResponse(w, agents, "Agents retrieved successfully")
 }
 
 func (h *HouseHandler) GetHouseTypes(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		h.sendErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
 	houseTypes, err := h.houseTypeRepo.GetAllHouseTypes()
 	if err != nil {
 		h.logger.Error("Failed to get house types", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		h.sendErrorResponse(w, http.StatusInternalServerError, "Failed to retrieve house types")
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(houseTypes); err != nil {
-		h.logger.Error("Failed to encode response", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	h.sendSuccessResponse(w, houseTypes, "House types retrieved successfully")
 }
 
 func (h *HouseHandler) HandleHousesRoute(w http.ResponseWriter, r *http.Request) {
@@ -330,9 +348,9 @@ func (h *HouseHandler) HandleHousesRoute(w http.ResponseWriter, r *http.Request)
 		case http.MethodDelete:
 			h.DeleteHouse(w, r)
 		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			h.sendErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		}
 	default:
-		http.Error(w, "Not found", http.StatusNotFound)
+		h.sendErrorResponse(w, http.StatusNotFound, "Endpoint not found")
 	}
 }
